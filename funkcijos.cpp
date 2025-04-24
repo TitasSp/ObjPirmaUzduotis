@@ -177,49 +177,70 @@ void FailuGeneravimas(int studentuSk, int pazymiuSk) {
     cout << "Studentu irasymas i faila uztruko: " << totalIrasymasDuration.count() << " ms" << endl;
     cout << "Is viso uztruko: " << durationVisas.count() << " ms" << endl;
 }
+
 void StudentuAtskirimas() {
-
-    ifstream in("rezultatai.txt");
-    if (!in.is_open()) {
-        throw runtime_error("Nepavyko atidaryti failo");
-    }
-
     ofstream outVargsiukai("stud_b.txt");
     ofstream outKieti("stud_g.txt");
 
-    ostringstream bufferVargsiukai;
-    ostringstream bufferKieti;
+    if (!outVargsiukai.is_open() || !outKieti.is_open()) {
+        throw runtime_error("Nepavyko atidaryti failo");
+    }
 
-    bufferVargsiukai.str(""); // isvalo bufferi
-    bufferKieti.str(""); // isvalo bufferi
-
-    bufferVargsiukai << left << setw(15) << "Vardas" << setw(20) << "Pavarde" << "Galutinis" << endl;
-    bufferKieti << left << setw(15) << "Vardas" << setw(20) << "Pavarde" << "Galutinis" << endl;
-
-    string vardas, pavarde;
-    float galutinis;
-
-    // praleidzia pirma eilute
-    string pirmaEilute;
-    getline(in, pirmaEilute);
+    vector<Studentas> vargsiukai;
+    vector<Studentas> kieti;
 
     auto start = high_resolution_clock::now();
 
-    while (in >> vardas >> pavarde >> galutinis) {
-        if (galutinis < 5) {
-            bufferVargsiukai << left << setw(15) << vardas << setw(20) << pavarde << fixed << setprecision(2) << galutinis << endl;
+    // Separate students into two vectors
+    for (const auto& studentas : studentai) {
+        if (studentas.galutinis < 5) {
+            vargsiukai.push_back(studentas);
         } else {
-            bufferKieti << left << setw(15) << vardas << setw(20) << pavarde << fixed << setprecision(2) << galutinis << endl;
+            kieti.push_back(studentas);
         }
     }
+
     auto end = high_resolution_clock::now();
     auto duration = duration_cast<milliseconds>(end - start);
     cout << "Studentu suskirstymas uztruko: " << duration.count() << " ms" << endl;
 
     auto start2 = high_resolution_clock::now();
 
-    outVargsiukai << bufferVargsiukai.str();
-    outKieti << bufferKieti.str();
+    // Write "vargsiukai" to file
+    outVargsiukai << left << setw(15) << "Vardas" << setw(20) << "Pavarde";
+    if (!vargsiukai.empty()) {
+        for (size_t i = 1; i <= vargsiukai[0].pazymiai.size(); i++) {
+            outVargsiukai << setw(10) << ("ND " + to_string(i));
+        }
+    }
+    outVargsiukai << setw(10) << "Egz." << endl;
+
+    for (const auto& studentas : vargsiukai) {
+        outVargsiukai << left << setw(15) << studentas.vardas
+                      << setw(20) << studentas.pavarde;
+        for (const auto& pazymys : studentas.pazymiai) {
+            outVargsiukai << setw(10) << pazymys;
+        }
+        outVargsiukai << setw(10) << studentas.egzaminas << endl;
+    }
+
+    // Write "kieti" to file
+    outKieti << left << setw(15) << "Vardas" << setw(20) << "Pavarde";
+    if (!kieti.empty()) {
+        for (size_t i = 1; i <= kieti[0].pazymiai.size(); i++) {
+            outKieti << setw(10) << ("ND " + to_string(i));
+        }
+    }
+    outKieti << setw(10) << "Egz." << endl;
+
+    for (const auto& studentas : kieti) {
+        outKieti << left << setw(15) << studentas.vardas
+                 << setw(20) << studentas.pavarde;
+        for (const auto& pazymys : studentas.pazymiai) {
+            outKieti << setw(10) << pazymys;
+        }
+        outKieti << setw(10) << studentas.egzaminas << endl;
+    }
 
     auto end2 = high_resolution_clock::now();
     auto duration2 = duration_cast<milliseconds>(end2 - start2);
@@ -227,8 +248,7 @@ void StudentuAtskirimas() {
 
     outVargsiukai.close();
     outKieti.close();
-    in.close();
-} 
+}
 
 ///////////////////////////////////////////////////////////////////////////
 void Test1() {
